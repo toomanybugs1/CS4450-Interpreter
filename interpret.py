@@ -7,8 +7,11 @@ def main():
         print("Usage: python interpret.py <script>")
         return
 
-    tokens = parse.parse_for_tokens(sys.argv[1])
-    for token in tokens:
-        print(token)
+    lines = parse.parse_for_tokens(sys.argv[1])
+    # look at all lines
+    for line in lines:
+        # this must be some form of assignment
+        if line.tokens[0].value == 'var':
+
 
 main()

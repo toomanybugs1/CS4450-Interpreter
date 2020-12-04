@@ -1,8 +1,9 @@
 from token import Token
+from token import Line
 
 def parse_for_tokens(filename):
 
-    tokens = []
+    lines_of_tokens = []
 
     file = open(filename, 'r')
     line_count = 0
@@ -10,12 +11,14 @@ def parse_for_tokens(filename):
     # We'll loop this way to preserve the line number
     while True:
         line_count += 1
+        line_tokens = []
 
         line = file.readline()
 
         if not line:
             break
 
+        tabs =  line.count('\t')
         line.split()
         print(len(line))
         words = line.split(' ')
@@ -24,8 +27,10 @@ def parse_for_tokens(filename):
             token_value = words[i].strip()
 
             if token_value != '':
-                tokens.append(Token('none', token_value, line_count))
+                line_tokens.append(Token(token_value, line_count, tabs))
+
+        lines_of_tokens.append(Line(line_tokens, line_count, tabs))
 
 
     file.close()
-    return tokens
+    return lines_of_tokens
