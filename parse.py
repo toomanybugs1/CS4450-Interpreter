@@ -1,5 +1,6 @@
 from token import Token
 from token import Line
+import re
 
 def parse_for_tokens(filename):
 
@@ -19,18 +20,19 @@ def parse_for_tokens(filename):
             break
 
         tabs =  line.count('\t')
-        line.split()
-        print(len(line))
-        words = line.split(' ')
+
+        words = re.split(' |(\+=?)|(\-=?)|(\*=?)|(\/=?)|(%=?)|(\^=?)|(print\()|(\))|(".*?")|(\'.*?\')|(str\()', line)
 
         for i in range(len(words)):
-            token_value = words[i].strip()
+            if words[i] != None:
+                token_value = words[i].strip()
+                if token_value == '#':
+                    break
 
-            if token_value != '':
-                line_tokens.append(Token(token_value, line_count, tabs))
+                if token_value != '':
+                    line_tokens.append(Token(token_value, line_count, tabs))
 
         lines_of_tokens.append(Line(line_tokens, line_count, tabs))
-
 
     file.close()
     return lines_of_tokens
