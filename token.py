@@ -19,7 +19,27 @@ keywords = {
 
     "print(": "print",
     "str(": "str_func",
-    ")": "closed_par"
+    "(": "open_par",
+    ")": "closed_par",
+
+    ":": "colon",
+    "):": "colon",
+    "if": "if",
+    "if(": "if",
+    "else": "else",
+    "elif": "elif",
+    "elif(": "elif",
+    "while": "while",
+
+    "==": "comp",
+    "!=": "comp",
+    ">=": "comp",
+    "<=": "comp",
+    "<": "comp",
+    ">": "comp",
+
+    "and": "boolcomp",
+    "or": "boolcomp"
 }
 
 VARIABLE_MAP = {}
@@ -142,7 +162,7 @@ def assign(var_tok, operator_tok, operand_toks):
 
     if operator_tok.type == 'eq':
         VARIABLE_MAP[var_tok.var_name].value = operand.value
-    elif operator_tok.type == 'pueq':
+    elif operator_tok.type == 'pleq':
         VARIABLE_MAP[var_tok.var_name].value += operand.value
     elif operator_tok.type == 'mieq':
         VARIABLE_MAP[var_tok.var_name].value -= operand.value
@@ -154,6 +174,90 @@ def assign(var_tok, operator_tok, operand_toks):
         VARIABLE_MAP[var_tok.var_name].value %= operand.value
     elif operator_tok.type == 'exeq':
         VARIABLE_MAP[var_tok.var_name].value ^= operand.value
+
+# compare two sides of an evaulation
+def compare(token_list):
+    left_side = []
+    right_side = []
+    conditional_index = 0
+    # left is 1-conditional
+    for i in range(0, len(token_list)):
+        if (token_list[i].type == 'comp'):
+            conditional_index = i
+            break
+        left_side.append(token_list[i])
+
+    # right is cond+1 to colon
+    for i in range(conditional_index + 1, len(token_list)):
+        if (token_list[i].type == "colon"):
+            break
+
+        right_side.append(token_list[i])
+
+    left_val = operate(left_side).value
+    right_val = operate(right_side).value
+
+    if (token_list[conditional_index].value == "=="):
+        return (left_val == right_val)
+    elif (token_list[conditional_index].value == ">="):
+        return (left_val >= right_val)
+    elif (token_list[conditional_index].value == "<="):
+        return (left_val <= right_val)
+    elif (token_list[conditional_index].value == ">"):
+        return (left_val > right_val)
+    elif (token_list[conditional_index].value == "<"):
+        return (left_val < right_val)
+    elif (token_list[conditional_index].value == "!="):
+        return (left_val != right_val)
+
+# Full compare line w/ and/or compatibility
+def compare_full(token_list):
+    i = 1
+    line_num = token_list[0].line
+    line_tab = token_list[0].line_tab_count
+    cond_tokens = []
+
+    # get variable values before operation
+    for tok in token_list:
+        if tok.type == 'var':
+            tok.value = VARIABLE_MAP[tok.var_name].value
+            if tok.value == 'null':
+                raise NameError('name ' + tok.var_name + ' is not defined on line ' + str(tok.line))
+
+    last_token_end = 0
+    while i < len(token_list) - 1:
+        result = None
+
+        # grab all tokens and delete until we get to an and/or
+        if token_list[i+1].type == "boolcomp" or token_list[i+1].type == "colon":
+            cond_tokens.append(token_list[i])
+            token_list[i] = Token(str(compare(cond_tokens)), line_num, line_tab)
+            cond_tokens = []
+            i += 2
+        else:
+            cond_tokens.append(token_list[i])
+            del token_list[i]
+
+    tokens = token_list[1:-1]
+
+    i = 1
+    while i < len(tokens) - 1:
+        result = None
+        if tokens[i].value == 'and':
+            result = Token(str(tokens[i-1].value and tokens[i+1].value), line_num, line_tab)
+        if tokens[i].value == 'or':
+            result = Token(str(tokens[i-1].value or tokens[i+1].value), line_num, line_tab)
+
+        if result is not None:
+            tokens[i+1] = result
+            del tokens[i-1:i+1]
+            i -= 1
+
+        else:
+            i += 1
+
+    return tokens[0]
+
 
 # Evaluate an equation into one token
 def operate(tokens):
@@ -168,12 +272,11 @@ def operate(tokens):
             if tok.value == 'null':
                 raise NameError('name ' + tok.var_name + ' is not defined on line ' + str(tok.line))
 
-
     while i < len(tokens) - 1:
         result = None
 
         if tokens[i].type == 'mu':
-            if tokens[i-1].type == 'string':
+            if tokens[i-1].type == 'string' or tokens[i+1].type == 'string':
                 result = Token("'" + str(tokens[i-1].value * tokens[i+1].value + "'"), line_num, line_tab)
             else:
                 result = Token(str(tokens[i-1].value * tokens[i+1].value), line_num, line_tab)
@@ -196,8 +299,8 @@ def operate(tokens):
         result = None
 
         if tokens[i].type == 'pl':
-            if tokens[i-1].type == 'string':
-                result = Token("'" + str(tokens[i-1].value + tokens[i+1].value + "'"), line_num, line_tab)
+            if tokens[i-1].type == 'string' or tokens[i+1].type == 'string':
+                result = Token('"' + str(tokens[i-1].value + tokens[i+1].value) + '"', line_num, line_tab)
             else:
                 result = Token(str(tokens[i-1].value + tokens[i+1].value), line_num, line_tab)
         elif tokens[i].type == 'mi':
