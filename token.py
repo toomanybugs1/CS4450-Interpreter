@@ -19,6 +19,7 @@ keywords = {
 
     "print(": "print",
     "str(": "str_func",
+    "int(": "int_func",
     "(": "open_par",
     ")": "closed_par",
 
@@ -39,7 +40,14 @@ keywords = {
     ">": "comp",
 
     "and": "boolcomp",
-    "or": "boolcomp"
+    "or": "boolcomp",
+
+    "range":"range",
+    "for":"for",
+    "in":"in",
+    "range(":"range",
+    ",":"comma",
+    "break":"break"
 }
 
 VARIABLE_MAP = {}
@@ -148,6 +156,19 @@ class Line:
 
         del self.tokens[start:end]
 
+    def int_statement(self, start, end):
+        value = operate(self.tokens[start+1:end])
+        value.value = int(value.value)
+        value.type = 'integer'
+
+        if (value.type == 'var'):
+            new_token = VARIABLE_MAP[value.var_name]
+            self.tokens[end] = new_token
+        else:
+            self.tokens[end] = value
+
+        del self.tokens[start:end]
+
 # Helper methods:
 # Handle assignment operators
 def assign(var_tok, operator_tok, operand_toks):
@@ -185,7 +206,9 @@ def compare(token_list):
         if (token_list[i].type == 'comp'):
             conditional_index = i
             break
-        left_side.append(token_list[i])
+
+        if (token_list[i].type != 'open_par'):
+            left_side.append(token_list[i])
 
     # right is cond+1 to colon
     for i in range(conditional_index + 1, len(token_list)):
@@ -234,6 +257,8 @@ def compare_full(token_list):
             token_list[i] = Token(str(compare(cond_tokens)), line_num, line_tab)
             cond_tokens = []
             i += 2
+        elif token_list[i+1].type == "open_par":
+            i += 1
         else:
             cond_tokens.append(token_list[i])
             del token_list[i]
