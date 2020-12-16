@@ -20,7 +20,8 @@ def parse_for_tokens(filename):
             break
 
         tabs =  line.count('   ')
-        #print("Line:",line_count,"Tabs:",tabs)
+        if tabs == 0:
+            tabs = line.count('\t')
 
         words = re.split(' |([a-zA-Z]+[0-9]+?)|(-?[0-9]+)|(!=)|(<=?)|(==?)|(>=?)|(\+=?)|(\-=?)|(\*=?)|(\/=?)|(%=?)|(\^=?)|(print\()|(\()|(\))|(".*?")|(\'.*?\')|(str\()|(int\()|( if\(? )|(\)?:)|( elif\(? )|( while )|( and )|( or )|(#.*?)|( in )|( for )|(range\()|(\,)|( break )', line)
 

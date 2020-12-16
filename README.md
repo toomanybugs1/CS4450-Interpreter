@@ -14,8 +14,8 @@ Clone the code to your machine. There are no dependencies, so you won't need a v
 
 With Python version 3, run the following (your path variable may just be 'python'):
 
-```python3 interpreter.py <your python file here>```
+```python3 interpreter.py python_test_code.py```
 
 The interpreter will then run your code!
 
-So far, we have only implemented str() and print(), but there are more library methods in the works. At this moment, there aren't loops, conditionals, or functions.
+This, of course, is not a FULL Python interpreter. It was made to satisfy the requirements of the python_test_code.py file. It shouldn't have trouble running any basic code you give it though.
