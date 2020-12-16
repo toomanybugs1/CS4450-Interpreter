@@ -14,7 +14,7 @@ Clone the code to your machine. There are no dependencies, so you won't need a v
 
 With Python version 3, run the following (your path variable may just be 'python'):
 
-```python3 interpreter.py python_test_code.py```
+```python3 interpreter.py <your python code>```
 
 The interpreter will then run your code!
 
